@@ -20,10 +20,12 @@ options.add_argument('--headless')
 options.add_argument('--disable-gpu') 
 chromedriver = dir_path + '/chromedriver'
 os.environ['webdriver.chrome.driver'] = chromedriver
+
 #list of hotels, San antonio, Austin, Dallas, Houston
 #utilize page number -oa(number) - to grab the links on the first 5 pages, 30 hotels at a time
 list_of_hotels = []
 list_of_links = []
+
 #initialize starting links 
 oa_num = 0
 san_antonio = 'https://www.tripadvisor.com/Hotels-g60956-oa{}-San_Antonio_Texas-Hotels.html'.format(oa_num)
@@ -34,7 +36,8 @@ list_of_hotels.append(san_antonio)
 list_of_hotels.append(austin)
 list_of_hotels.append(dallas)
 list_of_hotels.append(houston)
-#30 hotels on each page, 120 hotels in should be page 5, to add more pages, up oa_num + or - 30
+
+#30 hotels on each page, 180 hotels in should be page 6, to add more pages, go down or up by 30 with oa_num
 while oa_num <= 180:
     for hotel in list_of_hotels:
         print(hotel)
@@ -43,7 +46,7 @@ while oa_num <= 180:
         ui.WebDriverWait(driver, 60).until(EC.visibility_of_all_elements_located((By.ID, 'BODY_BLOCK_JQUERY_REFLOW')))
         elems = driver.find_elements_by_class_name('review_count')
         for elem in elems:
-            try:
+            try: # hotels with 0 reviews have no href link for looking at reviews, this try catch filters out hotels with no reviews 
                 link = elem.get_attribute('href')
                 index = link.find('Reviews-')
                 fixed_link = link[:index + 8] + 'or0-' + link[index+8:]
@@ -51,6 +54,7 @@ while oa_num <= 180:
                 list_of_links.append(dictionary)
             except: pass             
         driver.close()
+    #go to the the next page for each city
     oa_num += 30
     list_of_hotels = []
     san_antonio = 'https://www.tripadvisor.com/Hotels-g60956-oa{}-San_Antonio_Texas-Hotels.html'.format(oa_num)
@@ -62,5 +66,6 @@ while oa_num <= 180:
     list_of_hotels.append(dallas)
     list_of_hotels.append(houston)
     
+#save links to csv file
 all_links = pd.DataFrame(list_of_links)
 all_links.to_csv('hotel_links.csv',index = False)
