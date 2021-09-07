@@ -17,8 +17,8 @@ options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 dir_path = os.path.dirname(os.path.realpath('chromedriver'))
-#options.add_argument('--headless')
-#options.add_argument('--disable-gpu') 
+options.add_argument('--headless')
+options.add_argument('--disable-gpu') 
 chromedriver = dir_path + '/chromedriver'
 os.environ['webdriver.chrome.driver'] = chromedriver
 
@@ -76,7 +76,10 @@ for link in range(len(links)):
                 
                 
                 review_text = review.find_element_by_class_name('cPQsENeY').text
-                date_of_stay = review.find_element_by_class_name('_34Xs-BQm').text
+                try:
+                    date_of_stay = review.find_element_by_class_name('_34Xs-BQm').text
+                except:
+                    date_of_stay = np.nan
                 
                 dictionary = {'hotel_name': hotel_name,\
                               'hotel_city': hotel_city,\
