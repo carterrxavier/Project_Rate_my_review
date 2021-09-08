@@ -12,8 +12,12 @@ import json
 import nltk
 from nltk.tokenize.toktok import ToktokTokenizer
 from nltk.corpus import stopwords
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 import pandas as pd
+
+import warnings
+warnings.filterwarnings('ignore')
 
 
 
@@ -22,11 +26,11 @@ def basic_clean(string):
     This function takes in a string and
     returns the string normalized.
     '''
+    string = re.sub(r'[^\w\s]{3}', '', string).lower()
+    string = re.sub(r"[^a-z0-9'\s]{3}", '', string)
     string = unicodedata.normalize('NFKD', string)\
              .encode('ascii', 'ignore')\
              .decode('utf-8', 'ignore')
-    string = re.sub(r'[^\w\s]', '', string).lower()
-    string = re.sub(r"[^a-z0-9'\s]", '', string)
     return string
 
 def tokenize(string):
@@ -86,7 +90,7 @@ def remove_stopwords(string, extra_words = [], exclude_words = []):
     # Create stopword_list.
     stopword_list = stopwords.words('english')
     
-    # Remove 'exclude_words' from stopword_list to keep these in my text.
+    # Remove 'exclude_words' from stopword_list.
     stopword_list = set(stopword_list) - set(exclude_words)
     
     # Add in 'extra_words' to stopword_list.
@@ -95,7 +99,7 @@ def remove_stopwords(string, extra_words = [], exclude_words = []):
     # Split words in string.
     words = string.split()
     
-    # Create a list of words from my string with stopwords removed and assign to variable.
+    # Create a list of words from string with stopwords removed.
     filtered_words = [word for word in words if word not in stopword_list]
     
     # Join words in the list back into strings and assign to a variable.
@@ -122,6 +126,40 @@ def prep_nlp_data(df, nlp ,extra_words=[], exclude_words=[]):
                                    exclude_words=exclude_words)
 
     return df
+
+
+def get_sentiment_score(string, position=None):
+    sia = SentimentIntensityAnalyzer()
+    if position == 'positive':
+        return sia.polarity_scores(string)['pos']
+    elif position == 'negative':
+        return sia.polarity_scores(string)['neg']
+    elif position == 'neautral':
+        return sia.polarity_scores(string)['neu']
+    elif position == 'compound':
+        return sia.polarity_scores(string)['compound']
+    else:
+        return sia.polarity_scores(string)
+    
+
+def prep_review_data(df):
+    #drop duplicates
+    df = df.drop_duplicates(keep='first')
+    #split date of stay into 2 columns, month of stay and year of stay
+    df[['month_of_stay', 'year_of_stay']] = df.date_of_stay.str.strip().str.split(' ', n = 1, expand=True)
+    df = df.drop(columns='date_of_stay')
+    #function does a basic clean, utilizing NFDK unicode and utf-8, tokenizes and lammentizes words. removes stop words, keeping negative stop words for sentiment analysis. 
+    df = prep_nlp_data(df, 'review', extra_words =['wa'] , exclude_words=["haven't", "won't", "mightn't", 'not',"doesn't","needn't","shouldn't", 'no','none', "weren't", "couldn't"])
+    #Message Length and wordcounts for each read me
+    df['message_length'] = df.review_cleaned.apply(len)
+    df['word_count'] =  df.review_cleaned.str.split().apply(len)
+    #Add sentiments as their own columns for each review
+    df['postive_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='positive')
+    df['negative_sentiment'] =  df.review_cleaned.apply(get_sentiment_score, position='negative')
+    df['neatral_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='neautral')
+
+    return df
+
 
 
 
