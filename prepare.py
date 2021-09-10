@@ -154,7 +154,7 @@ def prep_review_data(df):
     df['message_length'] = df.review_cleaned.apply(len)
     df['word_count'] =  df.review_cleaned.str.split().apply(len)
     #Add sentiments as their own columns for each review
-    df['postive_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='positive')
+    df['positive_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='positive')
     df['negative_sentiment'] =  df.review_cleaned.apply(get_sentiment_score, position='negative')
     df['neatral_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='neautral')
 
