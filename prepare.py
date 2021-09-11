@@ -158,12 +158,23 @@ def prep_review_data(df):
     df['negative_sentiment'] =  df.review_cleaned.apply(get_sentiment_score, position='negative')
     df['neatral_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='neautral')
 
+    
+    
+    return df
+
+def remove_outliers(df):
+    postive_when_neg  = (df.positive_sentiment  >= .500) & (df.review_rating < 3)
+    negative_when_pos = (df.negative_sentiment  >= .500) & (df.review_rating > 3)
+    drop1=(df[postive_when_neg] == True).index.to_list()
+    drop2=(df[negative_when_pos]== True).index.to_list()
+    df = df.drop(drop1)
+    df = df.drop(drop2)
+    df = df.reset_index().drop(columns='index')
+    
     return df
 
 
-
-
-def lang_split(df):
+def split_for_model(df, target):
     '''
     This function take in the readme data acquired
     performs a split and stratifies language_cleaned column.
@@ -171,9 +182,10 @@ def lang_split(df):
     '''
     train_validate, test = train_test_split(df, test_size=.2, 
                                         random_state=245, 
-                                        stratify=df.language_cleaned)
+                                        stratify=df[target])
     train, validate = train_test_split(train_validate, test_size=.3, 
                                    random_state=245, 
-                                   stratify=train_validate.language_cleaned)
+                                   stratify=train_validate[target])
+    print('{},{},{}'.format(train.shape,validate.shape,test.shape))
     return train, validate, test
 
