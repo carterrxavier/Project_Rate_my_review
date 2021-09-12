@@ -149,7 +149,7 @@ def prep_review_data(df):
     df[['month_of_stay', 'year_of_stay']] = df.date_of_stay.str.strip().str.split(' ', n = 1, expand=True)
     df = df.drop(columns='date_of_stay')
     #function does a basic clean, utilizing NFDK unicode and utf-8, tokenizes and lammentizes words. removes stop words, keeping negative stop words for sentiment analysis. 
-    df = prep_nlp_data(df, 'review', extra_words =['wa'] , exclude_words=["haven't", "won't", "mightn't", 'not',"doesn't","needn't","shouldn't", 'no','none', "weren't", "couldn't"])
+    df = prep_nlp_data(df, 'review', extra_words =['wa'] , exclude_words=["haven't", "won't", "mightn't", 'not',"doesn't","needn't","shouldn't", 'no','none', "weren't", "couldn't","wasn't","wouldn't", "don't", "isn't","aren't","mustn't", "couldn't",])
     #Message Length and wordcounts for each read me
     df['message_length'] = df.review_cleaned.apply(len)
     df['word_count'] =  df.review_cleaned.str.split().apply(len)
@@ -163,8 +163,8 @@ def prep_review_data(df):
     return df
 
 def remove_outliers(df):
-    postive_when_neg  = (df.positive_sentiment  >= .500) & (df.review_rating < 3)
-    negative_when_pos = (df.negative_sentiment  >= .500) & (df.review_rating > 3)
+    postive_when_neg  = (df.positive_sentiment  >= .450) & (df.review_rating == 1)
+    negative_when_pos = (df.negative_sentiment  >= .450) & (df.review_rating == 5)
     drop1=(df[postive_when_neg] == True).index.to_list()
     drop2=(df[negative_when_pos]== True).index.to_list()
     df = df.drop(drop1)
