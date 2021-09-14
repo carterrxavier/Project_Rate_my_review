@@ -26,11 +26,12 @@ def basic_clean(string):
     This function takes in a string and
     returns the string normalized.
     '''
-    string = re.sub(r'[^\w\s]{3}', '', string).lower()
-    string = re.sub(r"[^a-z0-9'\s]{3}", '', string)
+
     string = unicodedata.normalize('NFKD', string)\
              .encode('ascii', 'ignore')\
              .decode('utf-8', 'ignore')
+    string = re.sub(r"[^a-z0-9'\s]", '', string).lower()
+    string = re.sub(r'[^\w\s]', '', string).lower()
     return string
 
 def tokenize(string):
