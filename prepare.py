@@ -30,9 +30,8 @@ def basic_clean(string):
     string = unicodedata.normalize('NFKD', string)\
              .encode('ascii', 'ignore')\
              .decode('utf-8', 'ignore')
-    string = re.sub(r"[^a-z0-9'\s]", '', string).lower()
-    string = re.sub(r'[^\w\s]', '', string).lower()
-    return string
+    string = re.sub(r"[^a-z0-9'\s]", '', string)
+    return string.lower()
 
 def tokenize(string):
     '''
@@ -150,7 +149,7 @@ def prep_review_data(df):
     df[['month_of_stay', 'year_of_stay']] = df.date_of_stay.str.strip().str.split(' ', n = 1, expand=True)
     df = df.drop(columns='date_of_stay')
     #function does a basic clean, utilizing NFDK unicode and utf-8, tokenizes and lammentizes words. removes stop words, keeping negative stop words for sentiment analysis. 
-    df = prep_nlp_data(df, 'review', extra_words =['wa'] , exclude_words=["haven't", "won't", "mightn't", 'not',"doesn't","needn't","shouldn't", 'no','none', "weren't", "couldn't","wasn't","wouldn't", "don't", "isn't","aren't","mustn't", "couldn't",])
+    df = prep_nlp_data(df, 'review', extra_words =['wa',',',"'"] , exclude_words=["haven't", "won't", "mightn't", 'not',"doesn't","needn't","shouldn't", 'no','none', "weren't", "couldn't","wasn't","wouldn't", "don't", "isn't","aren't","mustn't", "couldn't",])
     #Message Length and wordcounts for each read me
     df['message_length'] = df.review_cleaned.apply(len)
     df['word_count'] =  df.review_cleaned.str.split().apply(len)
