@@ -15,7 +15,6 @@ from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
 
 import pandas as pd
-
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -30,7 +29,8 @@ def basic_clean(string):
     string = unicodedata.normalize('NFKD', string)\
              .encode('ascii', 'ignore')\
              .decode('utf-8', 'ignore')
-    string = re.sub(r"[^a-z0-9'\s]", '', string)
+    string = re.sub(r'[^\w\s]', '', string)
+    #string = re.sub(r"[^a-z0-9'\s]", '', string)
     return string.lower()
 
 def tokenize(string):
@@ -174,18 +174,5 @@ def remove_outliers(df):
     return df
 
 
-def split_for_model(df, target):
-    '''
-    This function take in the readme data acquired
-    performs a split and stratifies language_cleaned column.
-    Returns train, validate, and test dfs.
-    '''
-    train_validate, test = train_test_split(df, test_size=.2, 
-                                        random_state=245, 
-                                        stratify=df[target])
-    train, validate = train_test_split(train_validate, test_size=.3, 
-                                   random_state=245, 
-                                   stratify=train_validate[target])
-    print('{},{},{}'.format(train.shape,validate.shape,test.shape))
-    return train, validate, test
+
 
