@@ -1,21 +1,18 @@
 import os
 import json
 from typing import Dict, List, Optional, Union, cast
-
-
 from sklearn.model_selection import  train_test_split
-
 import unicodedata
 import re
 import json
-
 import nltk
 from nltk.tokenize.toktok import ToktokTokenizer
 from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
-
 import pandas as pd
 import warnings
+
+
 warnings.filterwarnings('ignore')
 
 
@@ -134,7 +131,7 @@ def get_sentiment_score(string, position=None):
         return sia.polarity_scores(string)['pos']
     elif position == 'negative':
         return sia.polarity_scores(string)['neg']
-    elif position == 'neautral':
+    elif position == 'neutral':
         return sia.polarity_scores(string)['neu']
     elif position == 'compound':
         return sia.polarity_scores(string)['compound']
@@ -143,28 +140,32 @@ def get_sentiment_score(string, position=None):
     
 
 def prep_review_data(df):
+    file_name = 'hotel_post_prep.csv'
+    if os.path.isfile(file_name):
+        return pd.read_csv(file_name)
     #drop duplicates
     df = df.drop_duplicates(keep='first')
     #split date of stay into 2 columns, month of stay and year of stay
     df[['month_of_stay', 'year_of_stay']] = df.date_of_stay.str.strip().str.split(' ', n = 1, expand=True)
     df = df.drop(columns='date_of_stay')
     #function does a basic clean, utilizing NFDK unicode and utf-8, tokenizes and lammentizes words. removes stop words, keeping negative stop words for sentiment analysis. 
-    df = prep_nlp_data(df, 'review', extra_words =['wa',',',"'"] , exclude_words=["haven't", "won't", "mightn't", 'not',"doesn't","needn't","shouldn't", 'no','none', "weren't", "couldn't","wasn't","wouldn't", "don't", "isn't","aren't","mustn't", "couldn't",])
+    df = prep_nlp_data(df, 'review', extra_words =['wa',',',"'",'hotel','room','stay','front','desk'] , exclude_words=['was',"haven't", "won't", "mightn't", 'not',"doesn't","needn't","shouldn't", 'no','none', "weren't", "couldn't","wasn't","wouldn't", "don't", "isn't","aren't","mustn't", "couldn't",])
     #Message Length and wordcounts for each read me
     df['message_length'] = df.review_cleaned.apply(len)
     df['word_count'] =  df.review_cleaned.str.split().apply(len)
     #Add sentiments as their own columns for each review
     df['positive_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='positive')
     df['negative_sentiment'] =  df.review_cleaned.apply(get_sentiment_score, position='negative')
-    df['neatral_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='neautral')
-
+    df['neutral_sentiment'] = df.review_cleaned.apply(get_sentiment_score, position='neutral')
+    
+    df.to_csv('hotel_post_prep.csv', index=False)
     
     
     return df
 
 def remove_outliers(df):
-    postive_when_neg  = (df.positive_sentiment  >= .450) & (df.review_rating == 1)
-    negative_when_pos = (df.negative_sentiment  >= .450) & (df.review_rating == 5)
+    postive_when_neg  = (df.positive_sentiment  > df.negative_sentiment) & (df.review_rating < 3)
+    negative_when_pos = (df.negative_sentiment  > df.positive_sentiment) & (df.review_rating > 3)
     drop1=(df[postive_when_neg] == True).index.to_list()
     drop2=(df[negative_when_pos]== True).index.to_list()
     df = df.drop(drop1)
@@ -172,6 +173,18 @@ def remove_outliers(df):
     df = df.reset_index().drop(columns='index')
     
     return df
+
+
+def split_for_model(df, target):
+    train_validate, test = train_test_split(df, test_size=.2, 
+                                        random_state=321, stratify=df[target])
+    train, validate = train_test_split(train_validate, test_size=.3, 
+                                   random_state=231, stratify=train_validate[target])
+    
+    print('train{},validate{},test{}'.format(train.shape, validate.shape, test.shape))
+    return train, validate, test
+
+
 
 
 

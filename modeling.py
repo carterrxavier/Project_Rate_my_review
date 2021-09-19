@@ -19,8 +19,8 @@ warnings.filterwarnings('ignore')
 
 def xy_split(X, y):
     '''
-    This function take in the readme data acquired
-    performs a split and stratifies language_cleaned column.
+    This function take in the data acquired and 
+    performs a split and stratifies target variable column.
     Returns train, validate, and test dfs.
     '''
     X_train_validate, X_test, y_train_validate, y_test = train_test_split(X, y, test_size=.2, 
@@ -28,12 +28,6 @@ def xy_split(X, y):
                                                                           stratify = y)
     X_train, X_validate, y_train, y_validate = train_test_split(X_train_validate, y_train_validate, test_size=.3,random_state=254,stratify= y_train_validate)
     return X_train, X_validate, y_train, y_validate, X_test, y_test
-
-
-
-
-
-
 
 
 def get_baseline(df):
@@ -51,8 +45,8 @@ def train_validate_results(model, X_train, y_train, X_validate, y_validate, deta
     t_pred = model.predict(X_train)
     v_pred = model.predict(X_validate)
     print('Train model Accuracy: {:.5f} %  | Validate model accuracy: {:.5f} % '.format(accuracy_score(y_train, t_pred) * 100, accuracy_score(y_validate, v_pred) * 100))
-    print('Train model Recall: {:.5f} %    | Validate model Recall: {:.5f} %'.format(recall_score(y_train, t_pred, average='macro') * 100, recall_score(y_validate, v_pred, average='macro') * 100))
-    print('Train model Precision: {:.5f} % | Validate model Precision: {:.5f} %'.format(precision_score(y_train, t_pred, average='macro') * 100, precision_score(y_validate, v_pred, average='macro') * 100))
+    print('Train model Recall: {:.5f} %    | Validate model Recall: {:.5f} %'.format(recall_score(y_train, t_pred, average='micro') * 100, recall_score(y_validate, v_pred, average='macro') * 100))
+    print('Train model Precision: {:.5f} % | Validate model Precision: {:.5f} %'.format(precision_score(y_train, t_pred, average='micro') * 100, precision_score(y_validate, v_pred, average='macro') * 100))
     print('------------------------------------------------------------------------')
     if details == True:
         Col_labels = ['One', "Two", 'Three', "Four", 'Five']
@@ -70,14 +64,14 @@ def train_validate_results(model, X_train, y_train, X_validate, y_validate, deta
 def test_results(model, X_train, y_train,X_test, y_test, details=False):
     '''
     this function prints the accuracy, recall and precision of the model passed in
-    if details = True, it will display the classification report and the confusion matrices for train and validate dataframes
+    if details = True, it will display the classification report and the confusion matrices for test dataframes
     
     '''
     model.fit(X_train, y_train)
     t_pred = model.predict(X_test)
     print('Test model Accuracy: {:.5f} %'.format(accuracy_score(y_test, t_pred) * 100))
-    print('Test model Recall: {:.5f} % '.format(recall_score(y_test, t_pred,average='macro') * 100))
-    print('Test model Precision: {:.5f} %'.format(precision_score(y_test, t_pred, average='macro') * 100)) 
+    print('Test model Recall: {:.5f} % '.format(recall_score(y_test, t_pred,average='micro') * 100))
+    print('Test model Precision: {:.5f} %'.format(precision_score(y_test, t_pred, average='micro') * 100)) 
     if details == True:
         Col_labels = ['Java', 'Javascript','R','Python']
         Row_labels = ['Java', 'Javascript','R','Python']
